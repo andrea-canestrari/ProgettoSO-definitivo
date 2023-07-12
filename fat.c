@@ -1,7 +1,7 @@
 #include "fat.h"
 #define root_dir 0
 
-char* getModTime(){
+char* getTime(){
     time_t mytime = time(NULL);
     char * time_str = ctime(&mytime);
     time_str[strlen(time_str)-1] = '\0';
@@ -65,7 +65,7 @@ int killFAT(virtual_disk* vd){
    return res;
 }
 
-static int findFile(virtual_disk* vd, const char* name, char type){
+static int findIndex(virtual_disk* vd, const char* name, char type){
     int index = -1;
     for (int i=1; i<MAX_ENTRIES; i++){
         dir_entry* entry = (&(vd->disk->d_table[i]));
@@ -98,10 +98,77 @@ static int findFreeIndex(virtual_disk* vd, const char* name){
     }
 }
 
+static void addChildren(dir_entry* parent, int child){
+    for (int i=0; i<MAX_CHILDREN; i++){
+        int* curr_chld = parent->children[i];
+        if (curr_chld == NULL){
+            *curr_chld = child;
+            break;
+        }
+    }
+    parent->n_children++;
+}
+
+static void removeChild(dir_entry* parent, int child){
+    for (int i=0; i<MAX_CHILDREN; i++){
+        int* curr_chld = parent->children[i];
+        if (*curr_chld == child){
+            *curr_chld = NULL;
+            break;
+        }
+        if (*curr_chld == NULL){
+            break;
+        }
+    }
+    parent->n_children--;
+}
+
+static int createEntry(virtual_disk* vd, const char* name, int index, char type){
+    int freeBlock = -1;
+    if (type != DIRECTORY){
+        for (int i=0; i<MAX_BLOCKS; i++){
+            if (vd->disk->f_table[i] == UNUSED){
+                freeBlock = i;
+                break;
+            }
+        }
+        if (freeBlock == -1){
+            return -1;
+        }
+        vd->disk->f_table[freeBlock] = END_OF_CHAIN;
+        
+    }
+
+    dir_entry* entry = (&(vd->disk->d_table[index]));
+    strcpy(&entry->name, name);
+    printf("entry->name == %s\n", entry->name);
+    entry->type = type;
+    printf("entry->type == %c\n", entry->type);
+    entry->size = 0;
+    printf("entry->size == %d\n", entry->size);
+    entry->creationTime = getTime();
+    entry->first_fat_block = freeBlock;
+    printf("FAT index == %d\n", vd->disk->f_table[freeBlock]);
+    entry->parent_directory = vd->curr_dir;
+    printf("entry->parent_directory == %d\n", entry->parent_directory);
+    addChildren((&(vd->disk->d_table[entry->parent_directory])), index);
+    if (type == DIRECTORY){
+        entry->n_children = 0;
+        printf("entry->n_children == %d\n", entry->n_children);
+        for (int i=0; i<MAX_CHILDREN; i++){
+            entry->children[i] = 0;
+        }
+    }
+
+    return 0;
+
+
+}
+
 
 
 FileHandle* createFile(virtual_disk* vd, const char* name, const mode){
-    int file_index = findFile(vd, name, FILE);
+    int file_index = findIndex(vd, name, FILE);
     int free_index = findFreeIndex(vd, name);
     printf("file_index == %d,  free_index ==%d\n", file_index, free_index);
     if (file_index == -1 && free_index == -1){
@@ -134,4 +201,68 @@ FileHandle* createFile(virtual_disk* vd, const char* name, const mode){
     printf("file->mode == %c\n", file->mode);
     return file;
 
+}
+
+int createDir(virtual_disk* vd, const char* name){
+    int dir_index = findIndex(vd, name, DIRECTORY);
+    int free_index = findFreeIndex(vd, name);
+    printf("dir_index == %d,  free_index ==%d\n", dir_index, free_index);
+    if (dir_index == -1 && free_index == -1){
+        printf("Not enough space on the disk! (used ==-1, not_used ==-1)\n");
+        return NULL;
+    }
+    if (dir_index != -1){
+        return 0;
+    }
+    return createEntry(vd, name, free_index, DIRECTORY);
+}
+
+void killFile(FileHandle* file){
+    free(file);
+}
+
+
+int eraseFile(virtual_disk* vd, const char* name){
+    int index = findIndex(vd, name, FILE);
+    printf("%d\n", index);
+    if (index == -1){
+        printf("No such file or directory!\n");
+        return -1;
+    }
+    dir_entry* entry = &(vd->disk->d_table[index]);
+    printf("%s\n", entry->name);
+    int curr_e = entry->first_fat_block;
+    while (curr_e != END_OF_CHAIN){
+        if (curr_e != UNUSED){
+            int new_e = vd->disk->f_table[curr_e];
+            vd->disk->f_table[curr_e] = UNUSED;
+            curr_e = new_e;
+        }
+        else{
+            return -1;
+        }
+    }
+    if (entry->parent_directory != root_dir){
+        removeChild(&(vd->disk->d_table[entry->parent_directory]), index);
+    }
+    memset(entry, 0, sizeof(dir_entry));
+    return 0;
+}
+
+int eraseDir(virtual_disk* vd, const char* name){
+    int index= findEntry(vd, name, DIRECTORY);
+    if (index == -1){
+        printf("Directory not found!\n");
+        return -1;
+    }
+    dir_entry* entry = &(vd->disk->d_table[index]);
+    if (entry->n_children > 0){
+        printf("Entry is a file!\n");
+        return -1;
+    }
+    if (entry->parent_directory != root_dir){
+        removeChild(&(vd->disk->d_table[entry->parent_directory]), index);
+    }
+    memset(entry, 0, sizeof(dir_entry));
+    return 0;
 }

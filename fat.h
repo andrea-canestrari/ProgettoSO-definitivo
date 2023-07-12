@@ -33,7 +33,9 @@ typedef struct dir_entry{
     char name[MAX_NAME];
     char type;
     int size;
-    char* modTime;
+    char* creationTime;
+    char* lastWriteTime;
+    char* lastReadTime;
     fat_entry first_fat_block;
     int n_children;
     int children[MAX_CHILDREN];

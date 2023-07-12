@@ -23,3 +23,13 @@ Nella funzione createFile, vengono inizializzate due indici, i quali rispettivam
      1. Se entrambi sono uguali a -1, ciò significa che il file non è stato trovato e che non è presente una locazione libera all'interno della tabella delle dir_entry, per cui è necessario stampare un errore.
 
      2. Se la posizione è diversa da -1, ciò significa che il file è presente nella tabella e deve essere creata un FileHandle, in cui la dir_entry è uguale alla posizione. Altrimenti, viene sempre creato un FileHandle, ma la dir_entry è uguale alla prima locazione libera.
+
+
+Nella funzione createDir, viene eseguito il controllo sulla posizione della directory, se esistente, e l'individuazione della prima locazione libera all'interno della tabella delle dir_entry. In base a tali valori, si eseguono differenti operazioni:
+     1. Se entrambi sono uguali a -1, ciò significa che la directory non è stato trovata e che non è presente una locazione libera all'interno della tabella delle dir_entry, per cui è necessario stampare un errore.
+
+     2. Se il primo è diversa da -1, ciò significa che la directory esiste, per cui non è necessario creare una entry per essa. Altrimenti si ritorna l'esito della funzione createEntry, deputata alla inizializzazione della dir_entry.
+
+Nella funzione eraseFile, si segue l'idea di base della createFile, ovvero si ricerca se il file da eliminare risulta presente nella tabella delle dir_entry: in caso tale controllo comporti esito negativo, si ritorna errore. Altrimenti, è necessario andare a pulire le sezioni della fat table occupate dal file, prima di deallocare la struttura dati utilizzata. Nel caso in cui il file non abbia come directory padre la root directory, è necessario pulire anche la sezione dei figli relativa al padre del file.
+
+Nella funzione eraseDir, si segue il procedimento descritto dalla eraseFile, ad eccezione della pulizia della FAT table. 
