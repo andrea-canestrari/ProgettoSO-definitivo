@@ -37,7 +37,7 @@ virtual_disk* startFAT(const char* name){
     entry->name[0] = '/';
     entry->name[1] = '\0';
     entry->type = DIRECTORY;
-    entry->mod_time = getModTime();
+    entry->creationTime = getModTime();
     entry->n_children = 0;
     entry->parent_directory=-1;
     printf("setup ok!\n");
@@ -107,6 +107,8 @@ static void addChildren(dir_entry* parent, int child){
         }
     }
     parent->n_children++;
+    parent->lastWriteTime = getModTime();
+    parent->lastReadTime = getModTime();
 }
 
 static void removeChild(dir_entry* parent, int child){
@@ -121,6 +123,8 @@ static void removeChild(dir_entry* parent, int child){
         }
     }
     parent->n_children--;
+    parent->lastWriteTime = getModTime();
+    parent->lastReadTime = getModTime();
 }
 
 static int createEntry(virtual_disk* vd, const char* name, int index, char type){
@@ -147,6 +151,15 @@ static int createEntry(virtual_disk* vd, const char* name, int index, char type)
     entry->size = 0;
     printf("entry->size == %d\n", entry->size);
     entry->creationTime = getTime();
+    if (entry->type == 'DIRECTORY'){
+        entry->lastReadTime = 'This directory has not been accessed in reading mode yet!\n';
+        entry->lastWriteTime = 'This directory has not been accessed in writing mode yet!\n';
+    }
+    else{
+        entry->lastReadTime = 'This file has not been accessed in reading mode yet!\n';
+        entry->lastWriteTime = 'This file has not been accessed in writing mode yet!\n';
+    }
+    
     entry->first_fat_block = freeBlock;
     printf("FAT index == %d\n", vd->disk->f_table[freeBlock]);
     entry->parent_directory = vd->curr_dir;
@@ -167,7 +180,7 @@ static int createEntry(virtual_disk* vd, const char* name, int index, char type)
 
 
 
-FileHandle* createFile(virtual_disk* vd, const char* name, const mode){
+FileHandle* createFile(virtual_disk* vd, const char* name, char mode){
     int file_index = findIndex(vd, name, FILE);
     int free_index = findFreeIndex(vd, name);
     printf("file_index == %d,  free_index ==%d\n", file_index, free_index);
@@ -266,3 +279,68 @@ int eraseDir(virtual_disk* vd, const char* name){
     memset(entry, 0, sizeof(dir_entry));
     return 0;
 }
+
+int changeDir(virtual_disk* vd, const char* name){
+    printf("prev_dir == %d\n", vd->curr_dir);
+    if (name == '..'){
+        if (vd->curr_dir == root_dir){
+            printf("Already in root dir!\n");
+            return -1;
+        }
+        vd->curr_dir = (vd->disk->d_table[vd->curr_dir]).parent_directory;
+        return 0;
+    }
+    else if (name == '/'){
+        vd->curr_dir = root_dir;
+        return 0;
+    }
+
+    else{
+        int index = findEntry(vd, name, DIRECTORY);
+        if (index == -1){
+            printf("Directory not found!\n");
+            return -1;
+        }
+        vd->curr_dir = index;
+    }
+
+    printf("curr_dir == %d\n", vd->curr_dir);
+    return 0;
+
+}
+
+dir_array* listDir(virtual_disk* vd){
+    dir_entry* curr_dir = &(vd->disk->d_table[vd->curr_dir]);
+    dir_array* res = (dir_array*)malloc(sizeof(dir_entry)*curr_dir->n_children);
+    if (curr_dir->name!='\0' && curr_dir->type=='d')
+    printf("current dir == %s\n", curr_dir->name);
+    printf("size == %d\n", curr_dir->size);
+    printf("type == %c\n", curr_dir->type);
+    printf("creation time == %s\n", curr_dir->creationTime);
+    printf("last write time == %s\n", curr_dir->lastReadTime);
+    printf("last read time == %s\n", curr_dir->lastWriteTime);
+    printf("first block in FAT table == %d\n",curr_dir->first_fat_block);
+    printf("no. of children == %d\n", curr_dir->n_children);
+    printf("parent directory == %d\n", curr_dir->parent_directory);
+    printf("\n");
+
+    for (int i=0; i< curr_dir->n_children; i++){
+        dir_entry* curr_chld = &(vd->disk->d_table[curr_dir->children[i]]);
+        if (curr_chld->name!='\0' && (curr_chld->type=='d' || curr_chld->type=='f')){
+            printf("\n");
+            printf("current dir/file == %s\n",curr_chld->name);
+            printf("size of file == %d\n", curr_chld->size);
+            printf("type of file == %c\n", curr_chld->type);
+            printf("creation time == %s\n", curr_chld->creationTime);
+            printf("last write time == %s\n", curr_chld->lastReadTime);
+            printf("last read time == %s\n", curr_chld->lastWriteTime);
+            printf("first block in FAT table == %d\n",curr_chld->first_fat_block);
+            printf("no. of children == %d\n", curr_chld->n_children);
+            printf("parent directory == %d\n", curr_chld->parent_directory); 
+            memmove(res[i], curr_chld, sizeof(dir_entry));
+            printf("memmove no.%d complete!\n", i);
+            printf("\n");
+           }
+    }
+    return res;
+  }

@@ -32,4 +32,11 @@ Nella funzione createDir, viene eseguito il controllo sulla posizione della dire
 
 Nella funzione eraseFile, si segue l'idea di base della createFile, ovvero si ricerca se il file da eliminare risulta presente nella tabella delle dir_entry: in caso tale controllo comporti esito negativo, si ritorna errore. Altrimenti, è necessario andare a pulire le sezioni della fat table occupate dal file, prima di deallocare la struttura dati utilizzata. Nel caso in cui il file non abbia come directory padre la root directory, è necessario pulire anche la sezione dei figli relativa al padre del file.
 
-Nella funzione eraseDir, si segue il procedimento descritto dalla eraseFile, ad eccezione della pulizia della FAT table. 
+Nella funzione eraseDir, si segue il procedimento descritto dalla eraseFile, ad eccezione della pulizia della FAT table.
+
+Nella funzione changeDir, si eseguono inizialmente dei controlli sul nome della directory fornita:
+     1. Se il nome della directory risulta "..", è necessario spostarsi all'interno della parent directory contenuta nella dir_entry, ad eccezione nel caso in cui la current directory sia quella di root: in quel caso, è necessario lanciare un'eccezione.
+
+     2. Se il nome della directory risulta "\", è necessario spostarsi nella directory di root. Altrimenti, si esegue un ricerca all'interno della tabella delle dir_entry per individuare l'indice corrispondente alla directory interessata: se la si trova, ci si sposta. Altrimenti, si ritorna -1.
+
+Nella funzione listDir, inizialmente si alloca memoria per la struttura dati, deputata a contenere la directory corrente e tutti i suoi figli. In seguito, dopo aver stampato tutte le informazioni che la caratterizzano, si passa a scandire tutti i suoi figli (diversi da NULL) i quali, dopo la stampa delle informazioni, vengono inseriti in ciascun indice del vettore. 
