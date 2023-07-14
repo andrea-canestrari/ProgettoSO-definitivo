@@ -344,3 +344,106 @@ dir_array* listDir(virtual_disk* vd){
     }
     return res;
   }
+
+int findFreeFATIndex(virtual_disk* vd){
+    for (int i=0; i<MAX_BLOCKS; i++){
+        if (vd->disk->f_table[i] == UNUSED){
+            return i;
+        }
+    }
+    return -1;
+}
+
+data_block* getFreeDataBlock(virtual_disk* vd, int fat_index){
+    int next_index = vd->disk->f_table[fat_index];
+    if (next_index != END_OF_CHAIN){
+        fat_index = next_index;
+        return &(vd->disk->f_table[next_index]);
+    }
+
+    int new_index = findFreeFATIndex(vd);
+    if (findFreeFATIndex(vd) == -1){
+        return NULL;
+    }
+
+    vd->disk->f_table[fat_index] = new_index;
+    fat_index = new_index;
+    vd->disk->f_table[new_index] = 0;
+    data_block* data = &(vd->disk->data[new_index]);
+    memcpy(data, 0, sizeof(data));
+    return data;
+
+}
+
+data_block* getDataBlock(FileHandle* fd){
+    virtual_disk* vd = fd->vd;
+    dir_entry* entry = &vd->disk->d_table[fd->dir_entry];
+    for (int i=0; i<fd->block_index; i++){
+        if (entry->first_fat_block != UNUSED){
+            if (entry->first_fat_block == END_OF_CHAIN){
+                return NULL;
+            }
+            fd->block_index = vd->disk->f_table[entry->first_fat_block];
+        }
+    }
+    return &(vd->disk->data[fd->block_index]);
+}
+
+data_block* searchFreeDataBlock(FileHandle* fd){
+    virtual_disk* vd = fd->vd;
+    dir_entry* entry = &vd->disk->d_table[fd->dir_entry];
+    fd->block_index--;
+    data_block* d_block = getDataBlock(fd);
+    if (d_block != NULL){
+        fd->block_index++;
+        if ((getFreeDataBlock(fd->vd, (entry->first_fat_block))) == NULL){
+            printf("Not enough space on the virtual disk!\n");
+            return NULL;
+        }
+        fd->pos = 0;
+        return d_block;
+    }
+}
+
+int FAT_write(FileHandle* fd, const char* buf, size_t size){
+    if (fd->mode == READING_MODE){
+        printf("Reading only mode!\n");
+        return -1;
+    }
+    else{
+        virtual_disk* vd = fd->vd;
+        int written_bytes = 0;
+        int must_write = 0;
+        int repeated_blocks = 0;
+        data_block* data = getDataBlock(fd);
+        if (fd->pos == BLOCK_SIZE-1){
+            data = searchFreeDataBlock(fd);
+            if (data == NULL){
+                printf("Not enough space on the virtual disk!\n");
+                return -1;
+            }
+
+        }
+        while (written_bytes < size){
+            must_write = size- written_bytes;
+            memmove(data+fd->pos, buf, must_write);
+            fd->pos = fd->pos + must_write;
+            buf = buf + must_write;
+            written_bytes = written_bytes + must_write;
+
+            if (fd->pos >= BLOCK_SIZE){
+                fd->pos = fd->pos % BLOCK_SIZE; 
+                repeated_blocks++;
+                data = getDataBlock(fd->vd);
+                if (data==NULL){
+                    fd->pos = BLOCK_SIZE-1;
+                    break;
+                }
+            }
+        }
+
+        fd->block_index = fd->block_index+repeated_blocks;
+        vd->disk->d_table[fd->dir_entry].size = (sizeof(char)*sizeof(buf)) + vd->disk->d_table[fd->dir_entry].size;
+        return written_bytes; 
+    }
+}
