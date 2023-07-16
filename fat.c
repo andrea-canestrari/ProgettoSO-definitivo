@@ -447,3 +447,50 @@ int FAT_write(FileHandle* fd, const char* buf, size_t size){
         return written_bytes; 
     }
 }
+
+int FAT_read(FileHandle* fd, void* buf, size_t size){
+    if (fd->mode == WRITING_MODE){
+        printf("Writing only mode!\n");
+        return -1;
+    }
+    else if (fd->vd->disk->d_table[fd->dir_entry].size == 0){
+        printf("File is empty! Cannot perform reading!\n");
+        return -1;
+    }
+    else{
+        int read_bytes = 0;
+        int must_read = 0;
+        int repeated_blocks = 0;
+        virtual_disk* vd = fd->vd;
+        data_block* data = getDataBlock(fd);
+        if (fd->pos == BLOCK_SIZE-1){
+            data = searchFreeDataBlock(fd);
+            if (data == NULL){
+                printf("Not enough space on the virtual disk!\n");
+                return -1;
+            }
+        }
+        while (read_bytes < size){
+            must_read = size - read_bytes;
+            memmove(buf, data+fd->pos, must_read);
+            fd->pos = fd->pos + must_read;
+            buf = buf + fd->pos;
+            read_bytes = read_bytes + fd->pos;
+
+        if (fd->pos >= BLOCK_SIZE){
+            fd->pos = 0;
+            repeated_blocks++;
+            if ((searchFreeDataBlock(fd)) == NULL){
+                fd->pos = BLOCK_SIZE + 1;
+                break;
+            }
+        }
+        }
+
+        fd->block_index = fd->block_index + repeated_blocks;
+        return read_bytes;
+
+
+    }
+}
+
