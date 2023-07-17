@@ -354,6 +354,16 @@ int findFreeFATIndex(virtual_disk* vd){
     return -1;
 }
 
+void changeMod(FileHandle f, char newMode){
+    if (newMode == WRITING_MODE || newMode == READING_MODE){
+        f.mode = newMode;
+    }
+    else{
+        printf("Cannot recognize mode!\n");
+        return;
+    }
+}
+
 data_block* getFreeDataBlock(virtual_disk* vd, int fat_index){
     int next_index = vd->disk->f_table[fat_index];
     if (next_index != END_OF_CHAIN){
@@ -494,3 +504,41 @@ int FAT_read(FileHandle* fd, void* buf, size_t size){
     }
 }
 
+int FAT_seek(FileHandle* fd, int offset, int whence){
+    int res;
+
+    if (whence > SEEK_END){
+        return -1;
+    }
+
+    if (whence == SEEK_SET){
+        if (offset<0){
+            return -1;
+        }
+        res = offset;
+    }
+
+    else if (whence == SEEK_CUR){
+        res = ((fd->block_index * BLOCK_SIZE) + fd->pos) + offset;
+        if (res > (fd->vd)->disk->d_table[fd->dir_entry].size){
+            return -1;
+        }
+    }
+
+    else if (whence == SEEK_END){
+        if (offset > 0){
+            return -1;
+        }
+
+        res = (fd->vd)->disk->d_table[fd->dir_entry].size;
+        res = res + offset;
+
+        if (res > (fd->vd)->disk->d_table[fd->dir_entry].size){
+            return -1;
+        }
+    }
+
+    fd->block_index = res/BLOCK_SIZE;
+    fd->pos = res % BLOCK_SIZE;
+    return 0;
+}
