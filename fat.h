@@ -1,20 +1,19 @@
 #ifndef fat_h
 #define fat_h
-
-#include <stdlib.h>
-#include <stdio.h>
 #include <stddef.h>
-#include <string.h>
-#include <malloc.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/file.h> //mman.h
+#include <sys/mman.h>
+#include <string.h>
+#include <stdlib.h>
+#include <malloc.h>
 
-#define MAX_BLOCKS 2048 //total_blocks
-#define BLOCK_SIZE 2048 //block_buffer_size
-#define MAX_NAME 512 //dir_entry_max_name
-#define MAX_CHILDREN 128 //max_dir_children
-#define MAX_ENTRIES 512 //total_dir_entries
+#define MAX_BLOCKS 2048
+#define BLOCK_SIZE 2048
+#define MAX_NAME 512
+#define MAX_CHILDREN 128
+#define MAX_ENTRIES 512
 
 #define UNUSED -1
 #define END_OF_CHAIN 0
@@ -25,6 +24,7 @@
 
 #define WRITING_MODE 'w'
 #define READING_MODE 'r'
+#define READINGNWRITING_MODE 'x'
 
 
 typedef int fat_entry;

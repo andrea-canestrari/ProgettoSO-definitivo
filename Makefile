@@ -1,6 +1,9 @@
-CC= gcc
+CC=gcc
+CCOPTS=--std=gnu99 -Wall -Wextra -Wpedantic -Wc++-compat -g
 AR=ar
-CCOPTS=--std=c99 -Wall -Wstrict-prototypes -Wextra -Wpedantic -Wc++-compat -D_POSIX_C_SOURCE=200112L -g
+
+CFLAGS = -Wall -g
+
 
 HEADERS=fat.h
 OBJS=fat.o
@@ -9,13 +12,23 @@ BINS=test_fat
 
 .phony: clean all
 
-all: $(BINS)
 
-%.o: %.c $(HEADERS)
-    $(CC) $(CCOPTS) -c -o $@ $<
 
-test_fat: test_fat.c $(LIBS)
-    $(CC) $(CCOPTS) -o $@ $^
+
+all:	$(LIBS) $(BINS)
+
+%.o:	%.c $(HEADERS)
+	$(CC) $(CCOPTS) -c -o $@  $<
+
+fat.a: $(OBJS) $(HEADERS) 
+	$(AR) -rcs $@ $^
+	$(RM) $(OBJS)
+
+
+test_fat:  test_fat.c $(LIBS)
+	$(CC) $(CCOPTS) -o $@ $^
+
+
 
 clean:
-    rm -rf *.o *~ $(LIBS) $(BINS)
+	rm -rf *.o *~ $(LIBS) $(BINS)
