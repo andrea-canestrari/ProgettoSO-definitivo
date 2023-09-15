@@ -45,13 +45,11 @@ static void removeChild(dir_entry* parent, int child){
 
 static int createEntry(virtual_disk* vd,const char* name, int id, char type){
     int freeBlock;
-    if (type != DIRECTORY){
         freeBlock= findFreeFATBlock(vd);
         if (freeBlock == -1){
             return -1;
         }
         vd->disk->f_table[freeBlock] = END_OF_CHAIN;
-        }
         dir_entry* entry= (&(vd->disk->d_table[id]));
         strcpy(&entry->name[0], name);
         printf("entry->name == %s\n", entry->name);
@@ -347,10 +345,22 @@ int eraseDir(virtual_disk* vd, const char* name){
         return -1;
     }
     dir_entry* entry = &(vd->disk->d_table[index]);
+    int curr_e = entry->first_fat_block;
+    while (curr_e != 0){
+        if (curr_e != UNUSED){
+            int new_e = vd->disk->f_table[curr_e];
+            vd->disk->f_table[curr_e] = UNUSED;
+            curr_e = new_e;
+        }
+        else{
+            return -1;
+        }
+    }
     if (entry->n_children > 0){
         printf("Entry is a file!\n");
         return -1;
     }
+
     if (entry->parent_directory != root_dir){
         removeChild(&(vd->disk->d_table[entry->parent_directory]), index);
     }
@@ -449,9 +459,7 @@ dir_array* listDir(virtual_disk* vd){
         printf("prev rel pos == %d\n", fd->pos);
         fd->pos = fd->pos + must_write;
         printf("curr rel pos == %d\n", fd->pos);
-        printf("prev buf pos == %d\n", buf);
         buf = buf + must_write;
-        printf("curr buf pos == %d\n", buf);
         printf("prev written bytes == %d\n", written_bytes);
         written_bytes = written_bytes + must_write;
         printf("curr written bytes == %d\n", written_bytes);
@@ -509,9 +517,7 @@ else{
         printf("prev rel pos == %d\n", fd->pos);
         fd->pos = fd->pos + must_read;
         printf("curr rel pos == %d\n", fd->pos);
-        printf("prev buf pos == %d\n", buf);
         buf = buf + must_read;
-        printf("curr buf pos == %d\n", buf);
         printf("prev read bytes == %d\n", read_bytes);
         read_bytes = read_bytes + must_read;
         printf("curr read bytes == %d\n", read_bytes);
