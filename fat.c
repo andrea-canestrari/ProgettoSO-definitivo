@@ -499,7 +499,7 @@ else{
     int read_bytes = 0;
     int must_read = 0;
     int repeated_blocks = 0;
-    int curr_fat_index;
+    int curr_fat_index = fd->block_index;
     virtual_disk* vd = fd->vd;
     data_block* data = getDataBlock(fd, &curr_fat_index);
     int f_size = vd->disk->d_table[fd->dir_entry].size;
@@ -524,7 +524,7 @@ else{
         if (fd->pos == BLOCK_SIZE){
             fd->pos = 0;
             repeated_blocks++;
-            if ((searchFreeDataBlock(fd, &curr_fat_index)) == NULL){
+            if ((searchFreeDataBlock(fd, curr_fat_index)) == NULL){
                 fd->pos = BLOCK_SIZE + 1;
                 break;
             }
