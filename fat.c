@@ -442,7 +442,7 @@ dir_array* listDir(virtual_disk* vd){
     int must_write = 0;
     int repeated_blocks = 0;
     virtual_disk* vd = fd->vd;
-    int curr_fat_index;
+    int curr_fat_index = fd->block_index;
     data_block* data = getDataBlock(fd, &curr_fat_index);
     if (fd->pos == BLOCK_SIZE +1){
         data = searchFreeDataBlock(fd, &curr_fat_index);
@@ -469,7 +469,7 @@ dir_array* listDir(virtual_disk* vd){
         if (fd->pos >= BLOCK_SIZE){
             fd->pos = fd->pos % BLOCK_SIZE;
             repeated_blocks++;
-            data =  getFreeDataBlock(vd, &curr_fat_index);
+            data =  getFreeDataBlock(vd, curr_fat_index);
             if ((data == NULL)){
                 fd->pos = BLOCK_SIZE+1;
                 break;
