@@ -1,5 +1,5 @@
 CC=gcc
-CCOPTS=--std=gnu99 -Wall -Wextra -Wpedantic -Wc++-compat -g
+CCOPTS=--std=gnu99 -Wall -Wextra -Wpedantic -Wc++-compat -g -w
 AR=ar
 
 CFLAGS = -Wall -g
