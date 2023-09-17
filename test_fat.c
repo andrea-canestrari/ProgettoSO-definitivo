@@ -31,15 +31,6 @@ int main(){
     printf("\n");
 
 
-    for (int i=0; i< MAX_BLOCKS; i++){
-       printf("FAT table pos n.%d == %d\n", i, vd->disk->f_table[i]);
-    }
-
-    for (int i=0; i< MAX_ENTRIES; i++){
-       printf("dir table pos n.%d == %d\n", i, vd->disk->d_table[i].first_fat_block);
-       printf("%s\n", vd->disk->d_table[i].name);
-    }
-
     res = eraseDir(vd, "dirDiProva2");
     printf("eraseDir completed! Esito == %d\n", res);
     printf("\n");
