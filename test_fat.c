@@ -10,15 +10,7 @@ int main(){
     printf("createFile completed!\n");
     printf("\n");
     printf("\n");
-     for (int i=0; i<MAX_BLOCKS; i++){
-         printf("fat table ==%d\n", vd->disk->f_table[i]);
-  }
-
-    for (int i=0; i<MAX_ENTRIES; i++){
-       if (vd->disk->d_table[i].name!=NULL){
-         printf("dir table pos no. %d == %s\n", i, vd->disk->d_table[i].name);
-       }
-  }
+     
     FileHandle* file2 = createFile(vd, "filediprova.txt", 'x');
     printf("createFile completed!\n");
     printf("\n");
@@ -38,6 +30,7 @@ int main(){
     printf("createDir completed! Esito == %d\n", res);
     printf("\n");
     printf("\n");
+
 
  
 
@@ -59,7 +52,15 @@ int main(){
     printf("\n");
     printf("FAT_write completed! Caratteri scritti == %d\n", written);
 
-  
+  //for (int i=0; i<MAX_BLOCKS; i++){
+         //printf("fat table ==%d\n", vd->disk->f_table[i]);
+  //}
+
+    //for (int i=0; i<MAX_ENTRIES; i++){
+       //if (vd->disk->d_table[i].name!=NULL){
+         //printf("dir table pos no. %d == %s\n", i, vd->disk->d_table[i].name);
+       //}
+  //}
 
     int ris = FAT_seek(file, 1, SEEK_SET);
     printf("\n");
