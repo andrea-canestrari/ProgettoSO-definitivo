@@ -230,7 +230,6 @@ virtual_disk* startFAT(const char* name){
     entry->lastReadTime = getTime();
     entry->n_children = 0;
     entry->parent_directory=-1;
-    entry->first_fat_block=0;
     printf("setup ok!\n");
     vd->size = sizeof(fat_table) + sizeof(data_block) * MAX_BLOCKS;
     vd->curr_dir = 0;
