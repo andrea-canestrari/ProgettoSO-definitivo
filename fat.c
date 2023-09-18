@@ -481,7 +481,7 @@ dir_array* listDir(virtual_disk* vd){
     fd->block_index = fd->block_index+repeated_blocks;
     printf("\n");
     printf("%s\n", data+fd->pos);
-    return written_bytes;
+vd->disk->d_table[fd->dir_entry].lastWriteTime = getTime();    return written_bytes;
    }
 
   }
@@ -533,6 +533,7 @@ else{
     fd->block_index = fd->block_index + repeated_blocks;
 
     printf("\n");
+        vd->disk->d_table[fd->dir_entry].lastReadTime = getTime();
     return read_bytes;
     }
   }
