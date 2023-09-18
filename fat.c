@@ -445,9 +445,9 @@ dir_array* listDir(virtual_disk* vd){
     int repeated_blocks = 0;
     virtual_disk* vd = fd->vd;
     int curr_fat_index = fd->block_index;
-    data_block* data = getDataBlock(fd, &curr_fat_index);
-    if (fd->pos == BLOCK_SIZE +1){
-        data = searchFreeDataBlock(fd, &curr_fat_index);
+    data_block* data = getDataBlock(fd, curr_fat_index);
+    if (fd->pos >= BLOCK_SIZE +1){
+        data = searchFreeDataBlock(fd, curr_fat_index);
         if (data == NULL){
             printf("Not enough space on the virtual disk!\n");
             return -1;
@@ -483,7 +483,7 @@ dir_array* listDir(virtual_disk* vd){
     fd->block_index = fd->block_index+repeated_blocks;
     printf("\n");
     printf("%s\n", data+fd->pos);
-    vd->disk->d_table[fd->dir_entry].lastWriteTime = getTime(); 
+    vd->disk->d_table[fd->dir_entry].lastWriteTime = getTime();
    return written_bytes;
    }
 
@@ -506,8 +506,8 @@ else{
     virtual_disk* vd = fd->vd;
     data_block* data = getDataBlock(fd, &curr_fat_index);
     int f_size = vd->disk->d_table[fd->dir_entry].size;
-    if (fd->pos == BLOCK_SIZE +1){
-        data = searchFreeDataBlock(fd, &curr_fat_index);
+    if (fd->pos >= BLOCK_SIZE +1){
+        data = searchFreeDataBlock(fd, curr_fat_index);
         if (data == NULL){
             printf("Not enough space on the virtual disk!\n");
             return -1;
@@ -524,7 +524,7 @@ else{
         printf("prev read bytes == %d\n", read_bytes);
         read_bytes = read_bytes + must_read;
         printf("curr read bytes == %d\n", read_bytes);
-        if (fd->pos == BLOCK_SIZE){
+        if (fd->pos >= BLOCK_SIZE){
             fd->pos = 0;
             repeated_blocks++;
             if ((searchFreeDataBlock(fd, curr_fat_index)) == NULL){
