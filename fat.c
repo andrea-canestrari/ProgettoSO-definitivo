@@ -228,11 +228,13 @@ virtual_disk* startFAT(const char* name){
     entry->creationTime = getTime();
     entry->lastWriteTime = getTime();
     entry->lastReadTime = getTime();
+    entry->first_fat_block = 0;
     entry->n_children = 0;
     entry->parent_directory=-1;
     printf("setup ok!\n");
     vd->size = sizeof(fat_table) + sizeof(data_block) * MAX_BLOCKS;
     vd->curr_dir = 0;
+    vd->disk->f_table[entry->first_fat_block] = END_OF_CHAIN;
     printf("vd->size == %d\n", vd->size);
     printf("vd->curr_dir == %d\n", vd->curr_dir);
     printf("vd->fd == %d\n", vd->fd);
