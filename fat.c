@@ -228,12 +228,13 @@ virtual_disk* startFAT(const char* name){
     entry->creationTime = getTime();
     entry->lastWriteTime = getTime();
     entry->lastReadTime = getTime();
+    entry->first_fat_block = 0;
     entry->n_children = 0;
     entry->parent_directory=-1;
-    entry->first_fat_block=0;
     printf("setup ok!\n");
     vd->size = sizeof(fat_table) + sizeof(data_block) * MAX_BLOCKS;
     vd->curr_dir = 0;
+    vd->disk->f_table[entry->first_fat_block] = END_OF_CHAIN;
     printf("vd->size == %d\n", vd->size);
     printf("vd->curr_dir == %d\n", vd->curr_dir);
     printf("vd->fd == %d\n", vd->fd);
@@ -482,7 +483,8 @@ dir_array* listDir(virtual_disk* vd){
     fd->block_index = fd->block_index+repeated_blocks;
     printf("\n");
     printf("%s\n", data+fd->pos);
-vd->disk->d_table[fd->dir_entry].lastWriteTime = getTime();    return written_bytes;
+    vd->disk->d_table[fd->dir_entry].lastWriteTime = getTime(); 
+   return written_bytes;
    }
 
   }
@@ -534,7 +536,7 @@ else{
     fd->block_index = fd->block_index + repeated_blocks;
 
     printf("\n");
-        vd->disk->d_table[fd->dir_entry].lastReadTime = getTime();
+    vd->disk->d_table[fd->dir_entry].lastReadTime = getTime();
     return read_bytes;
     }
   }
