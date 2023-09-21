@@ -149,7 +149,7 @@ void changeMod(FileHandle f, char newMode){
     int next_index = vd->disk->f_table[fat_index];
     if (next_index != END_OF_CHAIN){
         fat_index = next_index;
-        return &(vd->disk->f_table[next_index]);
+        return &(vd->disk->data[next_index]);
     }
     int new_index = findFreeFATBlock(vd);
     if (new_index == -1){
