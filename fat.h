@@ -16,7 +16,7 @@
 #define MAX_ENTRIES 512
 
 #define UNUSED -1
-#define END_OF_CHAIN 0
+#define END_OF_CHAIN -2
 
 
 #define DIRECTORY 'd'
@@ -37,14 +37,20 @@ typedef struct dir_entry{
     char* lastWriteTime;
     char* lastReadTime;
     fat_entry first_fat_block;
+    fat_entry next_fat_block;
     int n_children;
     int children[MAX_CHILDREN];
     int parent_directory;
 } dir_entry;
 
+typedef struct data_block{
+	char* data[BLOCK_SIZE];
+} data_block;
+
 typedef fat_entry fat_table[MAX_BLOCKS];
 typedef dir_entry dir_table[MAX_ENTRIES];
-typedef char data_block[BLOCK_SIZE];
+typedef data_block data_table;
+
 
 typedef struct disk_block{
     dir_table d_table;
@@ -67,7 +73,7 @@ typedef struct FileHandle{
     char mode;
 } FileHandle;
 
-typedef dir_entry dir_array[MAX_CHILDREN];
+typedef dir_entry* dir_array[MAX_CHILDREN];
 
 virtual_disk* startFAT(const char* name);
 FileHandle* createFile(virtual_disk* vd, const char* name, char mode);
