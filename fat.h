@@ -77,7 +77,7 @@ typedef dir_entry* dir_array[MAX_CHILDREN];
 
 virtual_disk* startFAT(const char* name);
 FileHandle* createFile(virtual_disk* vd, const char* name, char mode);
-int eraseFile(virtual_disk* vd, const char* name);
+int eraseFile(virtual_disk* vd, const char* name, FileHandle* file);
 int FAT_write(FileHandle* fd, const char* buf, size_t size);
 int FAT_read(FileHandle* fd, void* buf, size_t size);
 int FAT_seek(FileHandle* fd, int offset, int whence);

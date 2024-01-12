@@ -10,9 +10,9 @@ OBJS=fat.o
 LIBS=fat.a
 BINS=test_fat
 
+NAME = provaFileSystemFat
+
 .phony: clean all
-
-
 
 
 all:	$(LIBS) $(BINS)
@@ -29,6 +29,8 @@ test_fat:  test_fat.c $(LIBS)
 	$(CC) $(CCOPTS) -o $@ $^
 
 
-
 clean:
-	rm -rf *.o *~ $(LIBS) $(BINS)
+	rm -rf *.o *~ $(LIBS) $(BINS) $(NAME) $(OBJS)
+	
+
+
