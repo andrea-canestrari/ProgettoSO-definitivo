@@ -21,6 +21,12 @@ Per quanto riguarda la funzione createFile, essa si basa sul valore assunto da d
 
 Nella seconda e nella terza ipotesi, è comunque necessario generare una entry all'interno della dir_table: nel primo caso, viene chiamata la funzione createKnownEntry, la quale prende in input anche la posizione del primo blocco relativo al file mentre nel secondo caso viene chiamata la funzione createEntry. In entrambe le funzioni, viene inizializzato il nuovo entry da posizionare all'interno della dir_table con alcune sostanziali differenze: nella createKnownEntry, il campo first_fat_block sarà uguale al posizione del file all'interno della fat_table mentre nel secondo sarà uguale alla prima posizione libera disponibile. Inoltre, nella createKnownEntry, viene modificato il campo relativo al next_fat_block del primo blocco relativo al file (posto uguale al campo first_fat_block dell'entry appena creato). Dopo aver inizializzato la entry, è necessario andare a modificare anche il campo relativo ai figli della parent directory dell'entry.
 
+Nella funzione createDir, viene eseguito il controllo sulla posizione della directory e l'individuazione della prima locazione libera all'interno della tabella delle dir_entry. In base a tali valori, si eseguono differenti operazioni:
+
+     1. Se entrambi sono uguali a -1, ciò significa che la directory non è stata individuata e non è presente una locazione libera all'interno della tabella delle dir_entry, per cui è necessario stampare un errore.
+
+     2. Se il primo indice è diverso da -1, ciò signfica che la directory esiste, per cui non è necessario creare una entry per essa. Altrimenti, si ritorna l'esito della funzione createEntry.
+
 La funzione eraseFile si basa, in maniera simile, sul funzionamento della createFile: inizialmente, viene ricercato il file da eliminare nella tabella delle dir_entry: se l'indice relativo alla sua posizione risulta essere negativo, allora ciò significa che tale elemento non è stato individuato ed è necessario ritornare errore. In caso contrario, è necessario andare a liberare le sezioni del fat_table occupate dal file, così come risulta necessario pulire anche la sezione dei figli relativa alla directory padre dell'entry in questione. Infine, si deallocano l'entry e il relativo FileHandle.
 
 Il funzionamento relativo alla eraseDir risulta essere analoga alla eraseFile, ad eccezione della deallocazione del FileHandle.
