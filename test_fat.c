@@ -151,8 +151,7 @@ for (int i=0; i<10; i++){
         printf("\n");
 	res = FAT_seek(file4, -250, SEEK_END);
         res = FAT_seek(file4, 19, SEEK_CUR);
-        res = FAT_seek(file4, -469, SEEK_CUR);
-        res = FAT_seek(file4, 102, SEEK_CUR);
+		res = FAT_seek(file4, 48, SEEK_SET);
 	res = FAT_read(file4, buf, sizeof(buf));
 	printf("\n");
         printf("\n");
