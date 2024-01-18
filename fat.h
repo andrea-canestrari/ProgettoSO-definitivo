@@ -49,7 +49,7 @@ typedef struct data_block{
 
 typedef fat_entry fat_table[MAX_BLOCKS];
 typedef dir_entry dir_table[MAX_ENTRIES];
-typedef data_block data_table;
+
 
 
 typedef struct disk_block{
